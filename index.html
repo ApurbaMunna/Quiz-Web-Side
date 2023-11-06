@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="css/style.css">
+    <title>Quiz App</title>
+  </head>
+  <body>
+    <div
+      class="quiz"
+      x-data="quiz"
+      x-init="$watch('isSubmitted', () => correctAnswers = calcCorrectAnswers())">
+      <div class="quiz-header">
+        <h1 x-text="quizHeading"></h1>
+        <div x-show="!isSubmitted" class="quiz-header-during">
+          <p x-show="progress !== questions.length">
+            Please answer the following questions
+          </p>
+          <p x-show="progress === questions.length">
+            You've answered all the questions, take a moment to review your
+            answers then press submit on the last question.
+          </p>
+        </div>
+        <div x-show="isSubmitted" class="quiz-header-submitted">
+          <span
+            class="quiz-header-submitted-score"
+            x-text="`You scored ${calcScorePercent(correctAnswers, questions.length)}%`"></span>
+          <p>Correct answers are highlighted in green.</p>
+        </div>
+      </div>
+      <template
+        x-for="(question, questionNumber) in questions"
+        :key="question.id">
+        <div class="quiz-question" x-show="questionNumber === currentQuestion">
+          <span class="question" x-text="question.text"></span>
+          <div class="quiz-question-answers">
+            <template x-for="answer in question.answers">
+              <div class="quiz-question-answers-option">
+                <input
+                  class="quiz-question-answers-option-input"
+                  type="radio"
+                  x-bind:name="questionNumber"
+                  x-bind:data-correct="answer.correct"
+                  x-bind:id="String(questionNumber) + String(answer.id)"
+                  @click="() => progress = calcProgress()"/>
+                <label
+                  class="quiz-question-answers-option-label"
+                  x-text="answer.text"
+                  x-bind:for="String(questionNumber) + String(answer.id)"
+                ></label>
+              </div>
+            </template>
+          </div>
+        </div>
+      </template>
+      <div class="quiz-navigation">
+        <button
+          class="navigation-prev btn btn-rtl"
+          @click="() => currentQuestion--"
+          x-show="currentQuestion !== 0">
+          Previous Question
+        </button>
+        <button
+          x-bind:class="`${getNextButtonClass()} navigation-next btn btn-ltr`"
+          @click="() => currentQuestion++"
+          x-show="currentQuestion !== questions.length - 1">
+          Next Question
+        </button>
+        <button
+          class="navigation-submit btn"
+          @click="() => {
+            isSubmitted = true;
+            quizHeading = 'Your Results';
+            currentQuestion = 0;
+            highlightCorrectAnswers();
+          }"
+          x-show="progress === questions.length && !isSubmitted"
+        >
+          Submit
+        </button>
+      </div>
+      <div class="quiz-footer">
+        <div
+          class="quiz-footer-progress-bar"
+          x-bind:style="`--progress-bar-progress: ${(isSubmitted ? (currentQuestion / (questions.length - 1)) : (progress / questions.length)) * 100}%`"
+        ></div>
+      </div>
+    </div>
+    <script src="js/main.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.10.4/dist/cdn.min.js"></script>
+  </body>
+</html>
